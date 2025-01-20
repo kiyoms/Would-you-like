@@ -1,4 +1,4 @@
-<h1><p align="center"> 주류 판매 쇼핑몰 Would you(酒) Like? 🍷</p></h1>
+![image](https://github.com/user-attachments/assets/63f890e5-8051-43ae-89a0-f50fd5cdb963)<h1><p align="center"> 주류 판매 쇼핑몰 Would you(酒) Like? 🍷</p></h1>
 
 
 ### 주의사항 
@@ -29,41 +29,10 @@ Would you(酒) Like? 는 다양한 와인들을 와인 종류, 원산지, 가격
 
 
 ### 주요코드 (주문관리)
-
+ 
 ```
-<%
-	String id = (String) session.getAttribute("sid");
-	if(id==null){
-%>
-     <script>
-			alert("로그인이 필요한 페이지 입니다!");
-			window.location="/wouldyoulike_final/member/loginForm.jsp";
-		</script>
-<%	}
-%>
+ORDERHISTORY.JSP 일부
 
- <%
-request.setCharacterEncoding("UTF-8");
-orderDAO dao = new orderDAO();
-String memberid = (String)session.getAttribute("sid");
-int option = 0;
-String strOption = request.getParameter("option");
-ArrayList<orderDTO> list=null;
-if(strOption != null){
-	option = Integer.parseInt(strOption);
-}
-if(option == 0){
-	list = dao.getCheckBuyInfo(memberid);
-}else if(option == 1){
-	list = dao.getBuyInfo(memberid);
-}
-
-%>
-```
-주문 체크전 로그인이 되어있는지 확인하고 로그인된 아이디로 주문내역을 DB에 넣는 작업을함
-옵션값으로 장바구니중 체크한 물품들만 데이터에 넣을 수 있게 구분함
-
-```
   <%if(list.size()> 0){
 	     for(orderDTO dto : list){ %>
 	     	<tr>
@@ -86,11 +55,42 @@ if(option == 0){
 	        </tr>
 	<%}} %>
 
-ORDERHISTORY 일부
+```
+```
+orderDAO.java 의 일부
+
+public ArrayList<orderDTO> getBuyInfo(String id) {
+      ArrayList<orderDTO> list = new ArrayList();
+
+      try {
+         this.conn = OracleConnection.getConnection();
+         String sql = "select * from orderinfo where memberid=? and ordercomplete ='\uc218\ub839\uc644\ub8cc' order by orderdate desc";
+         this.pstmt = this.conn.prepareStatement(sql);
+         this.pstmt.setString(1, id);
+         this.rs = this.pstmt.executeQuery();
+
+         while(this.rs.next()) {
+            orderDTO dto = new orderDTO();
+            dto.setproductNum(this.rs.getInt("productNum"));
+            dto.setmemberID(this.rs.getString("memberid"));
+            dto.setreceive(this.rs.getString("receive"));
+            dto.setpayment(this.rs.getString("payment"));
+            dto.setorderDate(this.rs.getString("orderdate"));
+            dto.setordercomplete(this.rs.getString("ordercomplete"));
+            dto.setpricesum(this.rs.getInt("pricesum"));
+            dto.setordername(this.rs.getString("ordername"));
+            dto.setmobilenum(this.rs.getString("mobilenum"));
+            dto.setorderamount(this.rs.getInt("orderamount"));
+            list.add(dto);
+         }
 
 ```
+![image](https://github.com/user-attachments/assets/b25358c0-0f7b-4088-a9e0-a19b22c993b2)
+
 
 ```
+ADDCARTPRO.JSP
+
 <%
 	request.setCharacterEncoding("UTF-8");
 	String productN = request.getParameter("productN");
@@ -110,93 +110,18 @@ ORDERHISTORY 일부
 	
 	response.sendRedirect("cart.jsp");
 %>
-ADD CARTPRO JSP
 
 ```
 
-```
-<%
-request.setCharacterEncoding("UTF-8");
-
-String id =(String)session.getAttribute("sid");
-
-String cid=null, cpw=null, cauto=null;
-Cookie [] cookies = request.getCookies();
-
-if(id==null){
-	if(cookies != null){
-		for(Cookie c :cookies){
-			String cname = c.getName();
-			if(cname.equals("cid")) cid=c.getValue();
-			if(cname.equals("cpw")) cpw=c.getValue();
-			if(cname.equals("cauto")) cauto=c.getValue();
-		}
-	}
-	if(cauto != null && cid != null && cpw != null){
-		response.sendRedirect("/wouldyoulike_final/member/loginPro.jsp");
-	}
-	response.sendRedirect("../member/loginForm.jsp");
-}
-
-cartDAO dao = new cartDAO();
-ArrayList<cartDTO> list = dao.getcartInfo(id);
-
-
-%>
-	<h2 style="margin-top:5%; margin-left:10%"><%=id %>님의 장바구니</h2>
-	<form action="reservationPage2.jsp" name="frm" method="post">
-		<input type="hidden" name="id" value="<%=id%>"/>
-		<table>
-			<tr align="center">
-				<th></th> <!-- 열맞추기용  -->
-				<th>상품이름</th>
-				<th>상품금액</th>
-				<th>수량</th>
-				<th></th>
-			</tr>
-	         	<%
-         		if(list.size()>0){
-	         		for(cartDTO dto : list){ 
-	         			int price = dao.productPrice(dto.getproductN());
-	         	%>
-					<tr id ="tr1" align="center">
-						<td><input type="checkbox" name="cartlist" value="<%=dto.getproductN()%>"/></td>
-    					<td><a href="../product/product.jsp?productN=<%=dto.getproductN()%>"><%=dto.getname()%></a></td>
-    					<td><%=price%></td>
-	         			<td><input type="number" name ="<%=dto.getproductN()%>" value ="<%=dto.getamount()%>" id="option" min="1" max="9"></td>
-	          			<td align="left">
-	          				<input type="button" onclick="location.href='deleteCart.jsp?id=<%=dto.getmemberID()%>&productN=<%=dto.getproductN()%>';"value="삭제하기" />
-						</td>
-					</tr>
-	           <%	}%>
-	        <tr>  
-				<td colspan="7">
-					<input type="submit" value="선택상품 구매" style="float:right;"/>
-					<input type="button" value="뒤로가기" onclick="back()"/>
-				</td>
-			</tr>
-			<%}else{%>
-				<tr>
-					<td></td>
-					<td colspan=3>장바구니가 비었습니다.</td>
-				</tr>
-			<%} %>
-		</table>
-	</form>
-<script>
-function back(){
-	
-	history.go(-1);
-	
-}
-```
-CART.JSP
+ 
 ### 진행하면서 아쉬웠던 점
 
-주문시에 주소를 적어야하는데, 주소를 적을 때 카카오맵 API를 이용해서 실제 주소를 가져오고, 지도를 보여주는 식으로 개발을 하였다.
-API를 사용했을때 실제 사이트에서 사용하는 기능을 넣을수 있다는것에 흥미가 정말 많이생겼고, 그래서 API를 좀 더 적극적으로 활용하고 싶었는데
-그러지못한게 아쉬웠다.
-주문을 넣었을때 가입한 이메일로 주문이 성공적으로 되었습니다 같은 메일을 보낼수있게 하고싶었는데 시간이 없어서 못한게 아쉬웠다.
+팀단위로 역할을 나눠 진행하는 첫 웹 개발 프로젝트였기 때문에 미숙한점이 많았다.<br>
+아무래도 기능을 나눠서 구현하다보니 다른 페이지와 연동되는것도 생각하며 개발해야 했었고<br>
+카카오맵 API로 주소를 불러오거나, 주문완료시 이메일을 가게하는 등 여러 API를 추가하여
+ 
+
+
 
 
 
