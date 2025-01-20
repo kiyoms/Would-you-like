@@ -55,9 +55,11 @@ ORDERHISTORY.JSP 일부
 	        </tr>
 	<%}} %>
 
+DTO에서 가져온 쿼리 결과물을 가져와 JSP 페이지에 출력
 ```
 ```
 orderDAO.java 의 일부
+orderHistory.jsp 페이지에 필요한 데이터들을 DB에서 가져옴
 
 public ArrayList<orderDTO> getBuyInfo(String id) {
       ArrayList<orderDTO> list = new ArrayList();
@@ -85,12 +87,12 @@ public ArrayList<orderDTO> getBuyInfo(String id) {
          }
 
 ```
-![image](https://github.com/user-attachments/assets/63f890e5-8051-43ae-89a0-f50fd5cdb963)
 ![image](https://github.com/user-attachments/assets/b25358c0-0f7b-4088-a9e0-a19b22c993b2)
 
 
 ```
-ADDCARTPRO.JSP
+addCartPRO.JSP
+장바구니에 추가할 데이터들을 가져와 쿼리를 실행함
 
 <%
 	request.setCharacterEncoding("UTF-8");
@@ -114,12 +116,65 @@ ADDCARTPRO.JSP
 
 ```
 
+```
+장바구니에 추가할때 실행되는 cartDao.java 로직
+
+   public int cartUpdate(int productN, String id, int amount) {
+      int result = 0;
+      cartDTO dto = new cartDTO();
+
+      try {
+         this.conn = OracleConnection.getConnection();
+         String sql = "select * from products where productn=?";
+         this.pstmt = this.conn.prepareStatement(sql);
+         this.pstmt.setInt(1, productN); 
+         this.rs = this.pstmt.executeQuery();
+         if (this.rs.next()) {
+            if (this.rs.getString("promotion").equalsIgnoreCase("y")) { //프로모션 상품일경우
+               dto.setprice(this.rs.getInt("promoprice")); //프로모션 가격으로
+            } else {
+               dto.setprice(this.rs.getInt("price")); //그냥 가격으로
+            }
+
+            dto.setproductN(this.rs.getInt("productn"));//상품번호
+            dto.setname(this.rs.getString("name")); //상품명
+            dto.setimg(this.rs.getString("img"));  //상품이미지
+         }
+
+         sql = "select * from user_cart where productn=? and user_id=?";
+         this.pstmt = this.conn.prepareStatement(sql);
+         this.pstmt.setInt(1, productN);
+         this.pstmt.setString(2, id);
+         this.rs = this.pstmt.executeQuery();
+         if (this.rs.next()) { //장바구니에 값이 있을경우 업데이트
+            sql = "update user_cart set amount =?  where productn=? and user_id =?";
+            this.pstmt = this.conn.prepareStatement(sql);
+            this.pstmt.setInt(1, this.rs.getInt("amount") + amount);
+            this.pstmt.setInt(2, productN);
+            this.pstmt.setString(3, id);
+            result = this.pstmt.executeUpdate();
+         } else { //장바구니에 값이 없을경우 데이터 추가
+            sql = "insert into user_cart values(?,?,?,?,?,?)";
+            this.pstmt = this.conn.prepareStatement(sql);
+            this.pstmt.setInt(1, productN);
+            this.pstmt.setString(2, id);
+            this.pstmt.setInt(3, dto.getprice());
+            this.pstmt.setString(4, dto.getname());
+            this.pstmt.setString(5, dto.getimg());
+            this.pstmt.setInt(6, amount);
+            result = this.pstmt.executeUpdate();
+         }
+	 
+```
+
  
 ### 진행하면서 아쉬웠던 점
 
 팀단위로 역할을 나눠 진행하는 첫 웹 개발 프로젝트였기 때문에 미숙한점이 많았다.<br>
 아무래도 기능을 나눠서 구현하다보니 다른 페이지와 연동되는것도 생각하며 개발해야 했었고<br>
 카카오맵 API로 주소를 불러오거나, 주문완료시 이메일을 가게하는 등 여러 API를 추가하여
+
+### 앞으로의 계획
  
 
 
