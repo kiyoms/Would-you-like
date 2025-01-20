@@ -1,4 +1,4 @@
-![image](https://github.com/user-attachments/assets/63f890e5-8051-43ae-89a0-f50fd5cdb963)<h1><p align="center"> 주류 판매 쇼핑몰 Would you(酒) Like? 🍷</p></h1>
+<h1><p align="center"> 주류 판매 쇼핑몰 Would you(酒) Like? 🍷</p></h1>
 
 
 ### 주의사항 
@@ -85,6 +85,7 @@ public ArrayList<orderDTO> getBuyInfo(String id) {
          }
 
 ```
+![image](https://github.com/user-attachments/assets/63f890e5-8051-43ae-89a0-f50fd5cdb963)
 ![image](https://github.com/user-attachments/assets/b25358c0-0f7b-4088-a9e0-a19b22c993b2)
 
 
