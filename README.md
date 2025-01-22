@@ -29,7 +29,8 @@ Would you(酒) Like? 는 다양한 와인들을 와인 종류, 원산지, 가격
 
 
 ### 주요코드 (주문관리)
- 
+
+
 ```
 ORDERHISTORY.JSP 일부
 
@@ -167,6 +168,36 @@ addCartPRO.JSP
 	 
 ```
 
+```
+cart.jsp의 로그인 확인 로직
+장바구니에 들어가려면 로그인 된 회원의 정보가 필요하므로
+로그인이 되지 않은상태로 장바구니 페이지에 들어갔을 경우 로그인 체크 로직을 실행함 
+<%
+request.setCharacterEncoding("UTF-8");
+
+String id =(String)session.getAttribute("sid");
+
+String cid=null, cpw=null, cauto=null;
+Cookie [] cookies = request.getCookies();
+
+if(id==null){
+	if(cookies != null){
+		for(Cookie c :cookies){
+			String cname = c.getName();
+			if(cname.equals("cid")) cid=c.getValue();
+			if(cname.equals("cpw")) cpw=c.getValue();
+			if(cname.equals("cauto")) cauto=c.getValue();
+		}
+	}
+	if(cauto != null && cid != null && cpw != null){
+		response.sendRedirect("/wouldyoulike_final/member/loginPro.jsp");
+	}
+	response.sendRedirect("../member/loginForm.jsp");
+}
+
+cartDAO dao = new cartDAO();
+ArrayList<cartDTO> list = dao.getcartInfo(id);
+```
  
 ### 진행하면서 아쉬웠던 점
 
